@@ -1740,21 +1740,24 @@ dependencies = [
 
 [[package]]
 name = "serial_test"
-version = "0.2.0"
+version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "50bfbc39343545618d97869d77f38ed43e48dd77432717dbc7ed39d797f3ecbe"
+checksum = "f74862f16557830c73deefde614c906f8af0157e064b64f156e32a0b12d7114c"
 dependencies = [
  "lazy_static 1.4.0",
+ "parking_lot 0.9.0",
+ "serial_test_derive",
 ]
 
 [[package]]
 name = "serial_test_derive"
-version = "0.2.0"
+version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "89dd85be2e2ad75b041c9df2892ac078fa6e0b90024028b2b9fb4125b7530f01"
+checksum = "3c188479c8b700998829c168d7a4c21032660b0dd2ed87a0b166c85811750740"
 dependencies = [
- "quote 0.6.13",
- "syn 0.15.44",
+ "proc-macro2 1.0.8",
+ "quote 1.0.2",
+ "syn 1.0.14",
 ]
 
 [[package]]
@@ -2307,7 +2310,6 @@ dependencies = [
  "serde_ignored",
  "serde_json",
  "serial_test",
- "serial_test_derive",
  "siphasher",
  "strsim",
  "structopt",

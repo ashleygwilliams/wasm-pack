@@ -93,7 +93,7 @@ pub fn check_version(
 ) -> Result<bool, failure::Error> {
     let expected_version = if expected_version == "latest" {
         let krate = Krate::new(tool)?;
-        krate.max_version
+        krate.max_stable_version
     } else {
         expected_version.to_string()
     };
@@ -198,8 +198,8 @@ fn prebuilt_url(tool: &Tool, version: &str) -> Result<String, failure::Error> {
         },
         Tool::CargoGenerate => {
             Ok(format!(
-                "https://github.com/ashleygwilliams/cargo-generate/releases/download/v{0}/cargo-generate-v{0}-{1}.tar.gz",
-                Krate::new(&Tool::CargoGenerate)?.max_version,
+                "https://github.com/cargo-generate/cargo-generate/releases/download/v{0}/cargo-generate-v{0}-{1}.tar.gz",
+                Krate::new(&Tool::CargoGenerate)?.max_stable_version,
                 target
             ))
         },

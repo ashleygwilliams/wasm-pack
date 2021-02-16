@@ -30,7 +30,7 @@ wasm-pack new myproject --template https://github.com/rustwasm/wasm-pack-templat
 The template can be an address to a git repo that contains a [`cargo-generate`]
 template.
 
-[`cargo-generate`]: https://github.com/ashleygwilliams/cargo-generate
+[`cargo-generate`]: https://github.com/cargo-generate/cargo-generate
 
 ## Mode
 

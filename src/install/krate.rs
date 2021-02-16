@@ -3,7 +3,7 @@ use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 pub struct Krate {
-    pub max_version: String,
+    pub max_stable_version: String,
 }
 
 #[derive(Debug, Deserialize)]

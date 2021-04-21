@@ -14,10 +14,12 @@ pub fn generate(
     install_permitted: bool,
 ) -> result::Result<(), Error> {
     info!("Generating a new rustwasm project...");
+    let cargo_generate_tool = Tool::CargoGenerate;
+    let version = install::Krate::new(&cargo_generate_tool)?.max_version;
     let download = install::download_prebuilt_or_cargo_install(
-        Tool::CargoGenerate,
+        cargo_generate_tool,
         &cache::get_wasm_pack_cache()?,
-        "latest",
+        &version,
         install_permitted,
     )?;
     generate::generate(&template, &name, &download)?;

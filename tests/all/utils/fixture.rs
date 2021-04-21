@@ -8,7 +8,7 @@ use std::sync::{MutexGuard, Once};
 use std::thread;
 use tempfile::TempDir;
 use wasm_pack;
-use wasm_pack::install::{self, Tool};
+use wasm_pack::install::{self, Krate, Tool};
 
 /// A test fixture in a temporary directory.
 pub struct Fixture {
@@ -263,13 +263,17 @@ impl Fixture {
         let cache = self.cache();
 
         let download = || {
+            let cargo_generate_tool = Tool::CargoGenerate;
+            let version = Krate::new(&cargo_generate_tool)
+                .expect("determine max_version of crate")
+                .max_version;
             if let Ok(download) =
-                install::download_prebuilt(&Tool::CargoGenerate, &cache, "latest", true)
+                install::download_prebuilt(&cargo_generate_tool, &cache, &version, true)
             {
                 return Ok(download);
             }
 
-            install::cargo_install(Tool::CargoGenerate, &cache, "latest", true)
+            install::cargo_install(cargo_generate_tool, &cache, &version, true)
         };
 
         // Only one thread can perform the actual download, and then afterwards

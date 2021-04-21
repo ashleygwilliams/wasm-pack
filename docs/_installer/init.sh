@@ -99,6 +99,11 @@ get_architecture() {
 
         Darwin)
             local _ostype=apple-darwin
+            # override for case where target machine is using Apple Silicon CPU, 
+            # use x86_64 binary via rosetta
+            if [ $_cputype == arm64 ]; then
+                local _cputype=x86_64
+            fi
             ;;
 
         MINGW* | MSYS* | CYGWIN*)

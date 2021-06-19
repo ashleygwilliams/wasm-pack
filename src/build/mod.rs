@@ -76,13 +76,15 @@ fn wasm_pack_local_version() -> Option<String> {
 pub fn cargo_build_wasm(
     path: &Path,
     profile: BuildProfile,
+    example: &Option<String>,
     extra_options: &[String],
 ) -> Result<(), Error> {
     let msg = format!("{}Compiling to Wasm...", emoji::CYCLONE);
     PBAR.info(&msg);
 
     let mut cmd = Command::new("cargo");
-    cmd.current_dir(path).arg("build").arg("--lib");
+
+    cmd.current_dir(path).arg("build");
 
     if PBAR.quiet() {
         cmd.arg("--quiet");
@@ -107,6 +109,9 @@ pub fn cargo_build_wasm(
     }
 
     cmd.arg("--target").arg("wasm32-unknown-unknown");
+    if let Some(example) = example {
+        cmd.arg("--example").arg(example);
+    }
     cmd.args(extra_options);
     child::run(cmd, "cargo build").context("Compiling your crate to WebAssembly failed")?;
     Ok(())

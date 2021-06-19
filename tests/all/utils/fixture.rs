@@ -1,5 +1,6 @@
 use binary_install::Cache;
 use std::env;
+use std::ffi::OsStr;
 use std::fs;
 use std::mem::ManuallyDrop;
 use std::path::{Path, PathBuf};
@@ -210,6 +211,41 @@ impl Fixture {
         )
     }
 
+    /// Add a `src/main.rs` file that contains a "hello world" program.
+    pub fn hello_world_src_main(&self) -> &Self {
+        self.file(
+            "src/main.rs",
+            r#"
+                extern crate wasm_bindgen;
+                use wasm_bindgen::prelude::*;
+
+                // Import the `console.log` function from the Web.
+                #[wasm_bindgen]
+                extern {
+                    #[wasm_bindgen(js_namespace = console, js_name = log)]
+                    fn console_log(s: &str);
+                }
+
+                // On wasm, print() should forward to console.log.
+                #[cfg(target_arch = "wasm32")]
+                fn print(text: &str) {
+                    console_log(text);
+                }
+
+                // On not-wasm, print() should forward to println!().
+                #[cfg(not(target_arch = "wasm32"))]
+                fn print(text: &str) {
+                    println!("{}", text);
+                }
+
+                // Write a main() that will print some text.
+                fn main() {
+                    print("Hello, World");
+                }
+            "#,
+        )
+    }
+
     /// Install a local wasm-bindgen for this fixture.
     ///
     /// Takes care not to re-install for every fixture, but only the one time
@@ -221,7 +257,7 @@ impl Fixture {
 
         static INSTALL_WASM_BINDGEN: Once = Once::new();
         let cache = self.cache();
-        let version = "0.2.37";
+        let version = "0.2.54";
 
         let download = || {
             if let Ok(download) =
@@ -324,6 +360,12 @@ impl Fixture {
         Cache::at(&self.cache_dir())
     }
 
+    pub fn command<S: AsRef<OsStr>>(&self, program: S) -> Command {
+        let mut result = Command::new(program);
+        result.current_dir(&self.path);
+        result
+    }
+
     /// The `step_install_wasm_bindgen` and `step_run_wasm_bindgen` steps only
     /// occur after the `step_build_wasm` step. In order to read the lockfile
     /// in the test fixture's temporary directory, we should first build the
@@ -420,6 +462,143 @@ pub fn no_cdylib() -> Fixture {
             wasm-bindgen-test = "0.2"
         "#,
     );
+    fixture
+}
+
+pub fn bin_crate() -> Fixture {
+    let fixture = Fixture::new();
+    fixture.readme().hello_world_src_main().file(
+        "Cargo.toml",
+        r#"
+            [package]
+            authors = ["The wasm-pack developers"]
+            description = "so awesome rust+wasm package"
+            license = "WTFPL"
+            name = "foo"
+            repository = "https://github.com/rustwasm/wasm-pack.git"
+            version = "0.1.0"
+
+            [dependencies]
+            wasm-bindgen = "0.2"
+
+            [dev-dependencies]
+            wasm-bindgen-test = "0.2"
+        "#,
+    );
+    fixture
+}
+
+pub fn multi_bin_crate() -> Fixture {
+    let fixture = Fixture::new();
+    fixture
+        .readme()
+        .hello_world_src_main()
+        .file(
+            "src/bin/sample.rs",
+            r#"
+            extern crate wasm_bindgen;
+            use wasm_bindgen::prelude::*;
+
+            // Import the `console.log` function from the Web.
+            #[wasm_bindgen]
+            extern {
+                #[wasm_bindgen(js_namespace = console, js_name = log)]
+                fn console_log(s: &str);
+            }
+
+            // On wasm, print() should forward to console.log.
+            #[cfg(target_arch = "wasm32")]
+            fn print(text: &str) {
+                console_log(text);
+            }
+
+            // On not-wasm, print() should forward to println!().
+            #[cfg(not(target_arch = "wasm32"))]
+            fn print(text: &str) {
+                println!("{}", text);
+            }
+
+            // Write a main() that will print slightly different text.
+            fn main() {
+                print("Sample Text");
+            }
+        "#,
+        )
+        .file(
+            "Cargo.toml",
+            r#"
+            [package]
+            authors = ["The wasm-pack developers"]
+            description = "so awesome rust+wasm package"
+            license = "WTFPL"
+            name = "foo"
+            repository = "https://github.com/rustwasm/wasm-pack.git"
+            version = "0.1.0"
+
+            [dependencies]
+            wasm-bindgen = "0.2"
+
+            [dev-dependencies]
+            wasm-bindgen-test = "0.2"
+        "#,
+        );
+    fixture
+}
+
+pub fn bin_example_crate() -> Fixture {
+    let fixture = Fixture::new();
+    fixture
+        .readme()
+        .hello_world_src_main()
+        .file(
+            "examples/example.rs",
+            r#"
+            extern crate wasm_bindgen;
+            use wasm_bindgen::prelude::*;
+
+            // Import the `console.log` function from the Web.
+            #[wasm_bindgen]
+            extern {
+                #[wasm_bindgen(js_namespace = console, js_name = log)]
+                fn console_log(s: &str);
+            }
+
+            // On wasm, print() should forward to console.log.
+            #[cfg(target_arch = "wasm32")]
+            fn print(text: &str) {
+                console_log(text);
+            }
+
+            // On not-wasm, print() should forward to println!().
+            #[cfg(not(target_arch = "wasm32"))]
+            fn print(text: &str) {
+                println!("{}", text);
+            }
+
+            // Write a main() that will print slightly different text.
+            fn main() {
+                print("Sample Text");
+            }
+        "#,
+        )
+        .file(
+            "Cargo.toml",
+            r#"
+            [package]
+            authors = ["The wasm-pack developers"]
+            description = "so awesome rust+wasm package"
+            license = "WTFPL"
+            name = "foo"
+            repository = "https://github.com/rustwasm/wasm-pack.git"
+            version = "0.1.0"
+
+            [dependencies]
+            wasm-bindgen = "0.2"
+
+            [dev-dependencies]
+            wasm-bindgen-test = "0.2"
+        "#,
+        );
     fixture
 }
 

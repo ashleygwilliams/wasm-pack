@@ -39,6 +39,7 @@ pub struct CrateData {
     current_idx: usize,
     manifest: CargoManifest,
     out_name: Option<String>,
+    example: Option<String>,
 }
 
 #[doc(hidden)]
@@ -403,7 +404,11 @@ pub struct ManifestAndUnsedKeys {
 impl CrateData {
     /// Reads all metadata for the crate whose manifest is inside the directory
     /// specified by `path`.
-    pub fn new(crate_path: &Path, out_name: Option<String>) -> Result<CrateData, Error> {
+    pub fn new(
+        crate_path: &Path,
+        out_name: Option<String>,
+        example: Option<String>,
+    ) -> Result<CrateData, Error> {
         let manifest_path = crate_path.join("Cargo.toml");
         if !manifest_path.is_file() {
             bail!(
@@ -435,6 +440,7 @@ impl CrateData {
             manifest,
             current_idx,
             out_name,
+            example,
         })
     }
 
@@ -506,18 +512,30 @@ impl CrateData {
         Ok(())
     }
 
-    fn check_crate_type(&self) -> Result<(), Error> {
+    fn valid_targets(&self) -> impl Iterator<Item = &cargo_metadata::Target> {
+        fn valid(target: &cargo_metadata::Target, example: &Option<String>) -> bool {
+            if let Some(example) = example {
+                target.name == *example && target.kind.iter().any(|k| k == "example")
+            } else {
+                fn valid_kind(x: &str) -> bool {
+                    x == "cdylib" || x == "bin"
+                }
+                target.kind.iter().any(|x| valid_kind(x))
+            }
+        }
         let pkg = &self.data.packages[self.current_idx];
-        let any_cdylib = pkg
-            .targets
+        pkg.targets
             .iter()
-            .filter(|target| target.kind.iter().any(|k| k == "cdylib"))
-            .any(|target| target.crate_types.iter().any(|s| s == "cdylib"));
-        if any_cdylib {
+            .filter(move |target| valid(target, &self.example))
+    }
+
+    fn check_crate_type(&self) -> Result<(), Error> {
+        let any_valid = self.valid_targets().count() > 0;
+        if any_valid {
             return Ok(());
         }
         bail!(
-            "crate-type must be cdylib to compile to wasm32-unknown-unknown. Add the following to your \
+            "library crate-type must be cdylib to compile to wasm32-unknown-unknown. Add the following to your \
              Cargo.toml file:\n\n\
              [lib]\n\
              crate-type = [\"cdylib\", \"rlib\"]"
@@ -535,6 +553,22 @@ impl CrateData {
             Some(lib) => lib.name.replace("-", "_"),
             None => pkg.name.replace("-", "_"),
         }
+    }
+
+    /// Get the target names that will be built for the current crate.
+    pub fn targets(&self) -> impl Iterator<Item = String> + '_ {
+        self.valid_targets().map(|x| {
+            if x.kind.iter().any(|x| x.ends_with("lib")) {
+                x.name.replace("-", "_")
+            } else {
+                x.name.clone()
+            }
+        })
+    }
+
+    /// Check if we are building an example.
+    pub fn is_example(&self) -> bool {
+        self.example.is_some()
     }
 
     /// Get the prefix for output file names

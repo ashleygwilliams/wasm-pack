@@ -12,7 +12,7 @@ fn it_copies_a_license_default_path() {
     let fixture = fixture::single_license();
     let out_dir = fixture.path.join("pkg");
     fs::create_dir(&out_dir).expect("should create pkg directory OK");
-    let crate_data = CrateData::new(&fixture.path, None);
+    let crate_data = CrateData::new(&fixture.path, None, None);
 
     assert!(license::copy_from_crate(&crate_data.unwrap(), &fixture.path, &out_dir).is_ok());
 
@@ -37,7 +37,7 @@ fn it_copies_a_license_provided_path() {
     let fixture = fixture::single_license();
     let out_dir = fixture.path.join("pkg");
     fs::create_dir(&out_dir).expect("should create pkg directory OK");
-    let crate_data = CrateData::new(&fixture.path, None);
+    let crate_data = CrateData::new(&fixture.path, None, None);
 
     assert!(license::copy_from_crate(&crate_data.unwrap(), &fixture.path, &out_dir).is_ok());
     let crate_license_path = fixture.path.join("LICENSE");
@@ -60,7 +60,7 @@ fn it_copies_all_licenses_default_path() {
     let fixture = fixture::dual_license();
     let out_dir = fixture.path.join("pkg");
     fs::create_dir(&out_dir).expect("should create pkg directory OK");
-    let crate_data = CrateData::new(&fixture.path, None);
+    let crate_data = CrateData::new(&fixture.path, None, None);
 
     assert!(license::copy_from_crate(&crate_data.unwrap(), &fixture.path, &out_dir).is_ok());
 
@@ -95,7 +95,7 @@ fn it_copies_all_licenses_provided_path() {
     let fixture = fixture::dual_license();
     let out_dir = fixture.path.join("pkg");
     fs::create_dir(&out_dir).expect("should create pkg directory OK");
-    let crate_data = CrateData::new(&fixture.path, None);
+    let crate_data = CrateData::new(&fixture.path, None, None);
 
     assert!(license::copy_from_crate(&crate_data.unwrap(), &fixture.path, &out_dir).is_ok());
 
@@ -131,7 +131,7 @@ fn it_copies_a_non_standard_license_provided_path() {
     let fixture = fixture::non_standard_license(license_file);
     let out_dir = fixture.path.join("pkg");
     fs::create_dir(&out_dir).expect("should create pkg directory OK");
-    let crate_data = CrateData::new(&fixture.path, None);
+    let crate_data = CrateData::new(&fixture.path, None, None);
 
     assert!(license::copy_from_crate(&crate_data.unwrap(), &fixture.path, &out_dir).is_ok());
 

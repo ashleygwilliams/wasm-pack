@@ -9,7 +9,7 @@ use target;
 
 // Keep it up to date with each `wasm-pack` release.
 // https://chromedriver.storage.googleapis.com/LATEST_RELEASE
-const DEFAULT_CHROMEDRIVER_VERSION: &str = "79.0.3945.36";
+const DEFAULT_CHROMEDRIVER_VERSION: &str = "86.0.4240.22";
 
 const CHROMEDRIVER_LAST_UPDATED_STAMP: &str = "chromedriver_last_updated";
 const CHROMEDRIVER_VERSION_STAMP: &str = "chromedriver_version";

@@ -9,8 +9,7 @@ use target;
 
 // Keep it up to date with each `wasm-pack` release.
 // https://github.com/mozilla/geckodriver/releases/latest
-const DEFAULT_GECKODRIVER_VERSION: &str = "v0.26.0";
-const DEFAULT_WINDOWS_GECKODRIVER_VERSION: &str = "v0.24.0";
+const DEFAULT_GECKODRIVER_VERSION: &str = "v0.27.0";
 
 const GECKODRIVER_LAST_UPDATED_STAMP: &str = "geckodriver_last_updated";
 const GECKODRIVER_VERSION_STAMP: &str = "geckodriver_version";
@@ -21,18 +20,9 @@ pub fn get_or_install_geckodriver(
     cache: &Cache,
     mode: InstallMode,
 ) -> Result<PathBuf, failure::Error> {
-    // geckodriver Windows binaries >v0.24.0 have an additional
-    // runtime dependency that we cannot be sure is present on the
-    // user's machine
-    //
-    // https://github.com/mozilla/geckodriver/issues/1617
-    //
-    // until this is resolved, always install v0.24.0 on windows
-    if !target::WINDOWS {
-        if let Ok(path) = which::which("geckodriver") {
-            log::info!("[geckodriver] Found geckodriver at {:?}", path);
-            return Ok(path);
-        }
+    if let Ok(path) = which::which("geckodriver") {
+        log::info!("[geckodriver] Found geckodriver at {:?}", path);
+        return Ok(path);
     }
     install_geckodriver(cache, mode.install_permitted())
 }
@@ -89,34 +79,26 @@ fn get_geckodriver_url(target: &str, ext: &str) -> String {
             .and_then(save_geckodriver_version)
     };
 
-    let geckodriver_version = if target::WINDOWS {
-        log::info!(
-            "[geckodriver] Windows detected, holding geckodriver version to {}",
-            DEFAULT_WINDOWS_GECKODRIVER_VERSION
-        );
-        DEFAULT_WINDOWS_GECKODRIVER_VERSION.to_owned()
-    } else {
-        log::info!("[geckodriver] Looking up latest version of geckodriver...");
-        match stamps::read_stamps_file_to_json() {
-            Ok(json) => {
-                if should_load_geckodriver_version_from_stamp(&json) {
-                    stamps::get_stamp_value(GECKODRIVER_VERSION_STAMP, &json)
-                } else {
-                    fetch_and_save_version()
-                }
+    log::info!("[geckodriver] Looking up latest version of geckodriver...");
+    let geckodriver_version = match stamps::read_stamps_file_to_json() {
+        Ok(json) => {
+            if should_load_geckodriver_version_from_stamp(&json) {
+                stamps::get_stamp_value(GECKODRIVER_VERSION_STAMP, &json)
+            } else {
+                fetch_and_save_version()
             }
-            Err(_) => fetch_and_save_version(),
         }
-        .unwrap_or_else(|error| {
-            log::warn!(
-                "[geckodriver] Cannot load or fetch geckodriver's latest version data, \
+        Err(_) => fetch_and_save_version(),
+    }
+    .unwrap_or_else(|error| {
+        log::warn!(
+            "[geckodriver] Cannot load or fetch geckodriver's latest version data, \
                  the default version {} will be used. Error: {}",
-                DEFAULT_GECKODRIVER_VERSION,
-                error
-            );
-            DEFAULT_GECKODRIVER_VERSION.to_owned()
-        })
-    };
+            DEFAULT_GECKODRIVER_VERSION,
+            error
+        );
+        DEFAULT_GECKODRIVER_VERSION.to_owned()
+    });
     let url = assemble_geckodriver_url(&geckodriver_version, target, ext);
     log::info!("[geckodriver] Fetching geckodriver at {}", url);
     url

@@ -9,7 +9,7 @@ use target;
 
 // Keep it up to date with each `wasm-pack` release.
 // https://chromedriver.storage.googleapis.com/LATEST_RELEASE
-const DEFAULT_CHROMEDRIVER_VERSION: &str = "79.0.3945.36";
+const DEFAULT_CHROMEDRIVER_VERSION: &str = "88.0.4324.96";
 
 const CHROMEDRIVER_LAST_UPDATED_STAMP: &str = "chromedriver_last_updated";
 const CHROMEDRIVER_VERSION_STAMP: &str = "chromedriver_version";
@@ -35,6 +35,8 @@ pub fn install_chromedriver(
         "linux64"
     } else if target::MACOS && target::x86_64 {
         "mac64"
+    } else if target::MACOS && target::aarch64 {
+        "mac64_m1"
     } else if target::WINDOWS {
         "win32"
     } else {

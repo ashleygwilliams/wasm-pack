@@ -1,5 +1,20 @@
 # Changelog
 
+## 🤍 Unreleased
+
+- ### 🤕 Fixes
+
+  - **Pass through extra options when building tests - [azriel91], [issue/698] [pull/851]**
+
+    `wasm-pack test` accepts extra options to pass through to `cargo` when running tests.
+    Under the hood, this runs `cargo build` before `cargo test`, and the additional options were only passed through to the `test` command. This meant that crates that enabled native features by default could not be built using `wasm-pack`, as it would attempt to build tests for the `wasm32-unknown-unknown` target with the native features enabled.
+
+    This PR passes through the extra options to `cargo` when building the tests as well.
+
+    [azriel91]: https://github.com/azriel91
+    [pull/851]: https://github.com/rustwasm/wasm-pack/pull/851
+    [issue/698]: https://github.com/rustwasm/wasm-pack/issues/698
+
 ## ☁️  0.9.1
 
 - ### 🤕 Fixes

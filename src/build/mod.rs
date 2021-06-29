@@ -112,11 +112,24 @@ pub fn cargo_build_wasm(
     Ok(())
 }
 
-/// Run `cargo build --tests` targetting `wasm32-unknown-unknown`.
+/// Runs `cargo build --tests` targeting `wasm32-unknown-unknown`.
 ///
 /// This generates the `Cargo.lock` file that we use in order to know which version of
 /// wasm-bindgen-cli to use when running tests.
-pub fn cargo_build_wasm_tests(path: &Path, debug: bool) -> Result<(), Error> {
+///
+/// Note that the command to build tests and the command to run tests must use the same parameters, i.e. features to be
+/// disabled / enabled must be consistent for both `cargo build` and `cargo test`.
+///
+/// # Parameters
+///
+/// * `path`: Path to the crate directory to build tests.
+/// * `debug`: Whether to build tests in `debug` mode.
+/// * `extra_options`: Additional parameters to pass to `cargo` when building tests.
+pub fn cargo_build_wasm_tests(
+    path: &Path,
+    debug: bool,
+    extra_options: &[String],
+) -> Result<(), Error> {
     let mut cmd = Command::new("cargo");
 
     cmd.current_dir(path).arg("build").arg("--tests");
@@ -130,6 +143,8 @@ pub fn cargo_build_wasm_tests(path: &Path, debug: bool) -> Result<(), Error> {
     }
 
     cmd.arg("--target").arg("wasm32-unknown-unknown");
+
+    cmd.args(extra_options);
 
     child::run(cmd, "cargo build").context("Compilation of your program failed")?;
     Ok(())

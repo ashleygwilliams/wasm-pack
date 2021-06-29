@@ -6,12 +6,10 @@ This tool seeks to be a one-stop shop for building and working with rust-
 generated WebAssembly that you would like to interop with JavaScript, in the
 browser or with Node.js. `wasm-pack` helps you build rust-generated
 WebAssembly packages that you could publish to the npm registry, or otherwise use
-alongside any javascript packages in workflows that you already use, such as [webpack]
-or [greenkeeper].
+alongside any javascript packages in workflows that you already use, such as [webpack].
 
 [bundler-support]: https://github.com/rustwasm/team/blob/master/goals/bundler-integration.md#details
 [webpack]: https://webpack.js.org/
-[greenkeeper]: https://greenkeeper.io/
 
 This project is a part of the [rust-wasm] group. You can find more info by
 visiting that repo!

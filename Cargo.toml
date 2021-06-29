@@ -30,7 +30,7 @@ serde_ignored = "0.0.4"
 serde_json = "1.0.26"
 strsim = "0.8.0"
 siphasher = "0.2.3"
-structopt = "0.2"
+structopt = "0.3"
 toml = "0.4"
 which = "2.0.0"
 binary-install = "0.0.2"
@@ -45,4 +45,12 @@ serial_test = "0.3"
 tempfile = "3"
 
 [features]
+# OpenSSL is vendored by default, can use system OpenSSL through feature flag.
+default = ['openssl/vendored']
+
+# Treat compiler warnings as a build error.
+# This only runs in CI by default
+strict = ['openssl/vendored']
+sys-openssl = ['openssl']
+# Keeping feature for users already using this feature flag
 vendored-openssl = ['openssl/vendored']

@@ -5,8 +5,8 @@ The purpose of `utils.rs` is to define the `utils` module, which contains a sing
 If the `console_error_panic_hook` feature is not enabled, then `set_panic_hook` is defined to be an inlined empty function. So, there is no run-time performance or code-size penalty incurred by its use.
 
 We will discuss:
-1. [Defining `set_panic_hook`](#a1-defining-set_panic_hook)
-2. [What is `console_error_panic_hook`?](#a2-what-is-console_error_panic_hook)
+1. [Defining `set_panic_hook`](#1-defining-set_panic_hook)
+2. [What is `console_error_panic_hook`?](#2-what-is-console_error_panic_hook)
 
 
 ---

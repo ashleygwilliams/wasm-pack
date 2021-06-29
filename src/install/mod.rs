@@ -198,8 +198,9 @@ fn prebuilt_url(tool: &Tool, version: &str) -> Result<String, failure::Error> {
         },
         Tool::CargoGenerate => {
             Ok(format!(
-                "https://github.com/ashleygwilliams/cargo-generate/releases/download/v{0}/cargo-generate-v{0}-{1}.tar.gz",
-                Krate::new(&Tool::CargoGenerate)?.max_version,
+                "https://github.com/cargo-generate/cargo-generate/releases/download/v{0}/cargo-generate-v{0}-{1}.tar.gz",
+                // Krate::new(&Tool::CargoGenerate)?.max_version,
+                "0.5.1", // latest released binary [#907](https://github.com/rustwasm/wasm-pack/issues/907)
                 target
             ))
         },
@@ -257,13 +258,16 @@ pub fn cargo_install(
         _ => tool.to_string(),
     };
     let mut cmd = Command::new("cargo");
+
     cmd.arg("install")
         .arg("--force")
         .arg(crate_name)
-        .arg("--version")
-        .arg(version)
         .arg("--root")
         .arg(&tmp);
+
+    if version != "latest" {
+        cmd.arg("--version").arg(version);
+    }
 
     let context = format!("Installing {} with cargo", tool);
     child::run(cmd, "cargo install").context(context)?;
@@ -274,7 +278,7 @@ pub fn cargo_install(
     // little renaming here.
     let binaries: Result<Vec<&str>, failure::Error> = match tool {
         Tool::WasmBindgen => Ok(vec!["wasm-bindgen", "wasm-bindgen-test-runner"]),
-        Tool::CargoGenerate => Ok(vec!["cargo-genrate"]),
+        Tool::CargoGenerate => Ok(vec!["cargo-generate"]),
         Tool::WasmOpt => bail!("Cannot install wasm-opt with cargo."),
     };
 

@@ -337,3 +337,61 @@ fn test_output_is_printed_once_in_both_stdout_and_failures() {
             out.matches("YABBA DABBA DOO").count() == log_cnt * 2
         }));
 }
+
+#[test]
+fn extra_options_is_passed_to_cargo_when_building_tests() {
+    let fixture = fixture::Fixture::new();
+    fixture
+        .readme()
+        .file(
+            "Cargo.toml",
+            r#"
+                [package]
+                name = "foo"
+                version = "0.1.0"
+                authors = []
+
+                [dev-dependencies]
+                wasm-bindgen-test = "0.2"
+
+                [features]
+                default = ["native"]
+                native = []
+            "#,
+        )
+        .file(
+            "src/lib.rs",
+            r#"
+                pub fn foo() -> u32 {
+                    #[cfg(feature = "native")]
+                    compile_error!("Test should pass through `--no-default-features` for this to pass.");
+
+                    1
+                }
+            "#,
+        )
+        .file(
+            "tests/foo.rs",
+            r#"
+                extern crate wasm_bindgen_test;
+                use wasm_bindgen_test::*;
+
+                #[wasm_bindgen_test]
+                fn smoke() {
+                    foo::foo();
+                }
+
+                #[wasm_bindgen_test]
+                fn fire() {
+                    panic!("This should be filtered from test execution.");
+                }
+            "#,
+        )
+        .install_local_wasm_bindgen();
+    let _lock = fixture.lock();
+    fixture
+        .wasm_pack()
+        .args(&["test", "--node", "--no-default-features", "--", "smoke"])
+        .assert()
+        .success();
+}

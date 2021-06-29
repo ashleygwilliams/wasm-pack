@@ -25,7 +25,7 @@ const getBinary = () => {
   const author = "rustwasm";
   const name = "wasm-pack";
   const url = `https://github.com/${author}/${name}/releases/download/v${version}/${name}-v${version}-${platform}.tar.gz`;
-  return new Binary(url, { name });
+  return new Binary(name, url );
 };
 
 const run = () => {

@@ -1,0 +1,63 @@
+name: Tests
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    name: Test
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        build: [linux-stable, macos-stable, windows-stable]
+        include:
+          - build: linux-stable
+            os: ubuntu-latest
+            rust: stable
+          - build: macos-stable
+            os: macos-latest
+            rust: stable
+          - build: windows-stable
+            os: windows-latest
+            rust: stable
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: nanasess/setup-chromedriver@master
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+          override: true
+          target: wasm32-unknown-unknown
+      - uses: actions/setup-node@v2
+
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-dependencies
+        with:
+          path: |
+            ~/.cargo/.crates.toml
+            ~/.cargo/.crates2.json
+            ~/.cargo/bin
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            target
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
+
+      - name: Update rust
+        run: |
+          rustup update ${{ matrix.rust }} --no-self-update
+          rustup default ${{ matrix.rust }}
+          rustup target add wasm32-unknown-unknown --toolchain stable
+
+      - name: Run Tests
+        run: cargo test --features "strict" --all --locked
+        env:
+          RUST_BACKTRACE: 1
+
+      - name: Clippy
+        run: cargo clippy
+
+      - name: Cargo fmt
+        run: cargo fmt --all -- --check

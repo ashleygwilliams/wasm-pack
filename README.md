@@ -7,8 +7,7 @@
   </p>
 
   <p>
-    <a href="https://travis-ci.com/rustwasm/wasm-pack"><img alt="Build Status" src="https://travis-ci.com/rustwasm/wasm-pack.svg?branch=master"/></a>
-    <a href="https://ci.appveyor.com/project/ashleygwilliams/wasm-pack-071k0"><img alt="Build status" src="https://ci.appveyor.com/api/projects/status/iv1qtnqtv168ef8h?svg=true"/></a>
+    <a href="https://github.com/rustwasm/wasm-pack/actions/workflows/test.yml"><img alt="Build Status" src="https://github.com/rustwasm/wasm-pack/actions/workflows/test.yml/badge.svg?branch=master"/></a>
     <a href="https://crates.io/crates/wasm-pack"><img alt="crates.io" src="https://meritbadge.herokuapp.com/wasm-pack"/></a>
   </p>
 
@@ -20,7 +19,8 @@
     <a href="https://discordapp.com/channels/442252698964721669/443151097398296587">Chat</a>
   </h3>
 
-  <sub>Built with 🦀🕸 by <a href="https://rustwasm.github.io/">The Rust and WebAssembly Working Group</a></sub>
+<sub>Built with 🦀🕸 by <a href="https://rustwasm.github.io/">The Rust and WebAssembly Working Group</a></sub>
+
 </div>
 
 ## About
@@ -89,4 +89,4 @@ This project was started by [ashleygwilliams] and is co-maintained by [ashleygwi
 
 [ashleygwilliams]: https://github.com/ashleygwilliams
 [drager]: https://github.com/drager
-[rustwasm Working Group]: https://github.com/rustwasm/team
+[rustwasm working group]: https://github.com/rustwasm/team

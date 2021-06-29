@@ -1,0 +1,176 @@
+on:
+  push:
+    tags:
+      - "v*" # Run when tag matches v*, i.e. v1.0, v20.15.10
+
+name: Release
+
+env:
+  RELEASE_BIN: wasm-pack
+  RELEASE_DIR: artifacts
+  GITHUB_REF: "${{ github.ref }}"
+  WINDOWS_TARGET: x86_64-pc-windows-msvc
+  MACOS_TARGET: x86_64-apple-darwin
+  LINUX_TARGET: x86_64-unknown-linux-musl
+
+  # Space separated paths to include in the archive.
+  RELEASE_ADDS: README.md
+
+jobs:
+  build:
+    name: Build artifacts
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        build: [linux, macos, windows]
+        include:
+          - build: linux
+            os: ubuntu-latest
+            rust: stable
+          - build: macos
+            os: macos-latest
+            rust: stable
+          - build: windows
+            os: windows-latest
+            rust: stable
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Query version number
+        id: get_version
+        shell: bash
+        run: |
+          echo "using version tag ${GITHUB_REF:10}"
+          echo ::set-output name=version::"${GITHUB_REF:10}"
+
+      - name: Install Rust
+        if: matrix.rust
+        run: |
+          rustup update ${{ matrix.rust }} --no-self-update
+          rustup default ${{ matrix.rust }}
+
+      - name: Install musl-tools (Linux)
+        if: matrix.build == 'linux'
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install musl-tools -y
+
+      - name: Install p7zip (MacOS)
+        if: matrix.build == 'macos'
+        run: brew install p7zip
+
+      - name: Build (Linux)
+        if: matrix.build == 'linux'
+        run: |
+          rustup target add ${{ env.LINUX_TARGET }}
+          cargo build --release --target ${{ env.LINUX_TARGET }}
+
+      - name: Build (MacOS)
+        if: matrix.build == 'macos'
+        run: cargo build --release
+
+      - name: Build (Windows)
+        if: matrix.build == 'windows'
+        run: cargo build --release
+        env:
+          RUSTFLAGS: -Ctarget-feature=+crt-static
+
+      - name: Create artifact directory
+        run: |
+          mkdir ${{ env.RELEASE_DIR }}
+          mkdir dist
+
+      - name: Create tarball (Linux)
+        if: matrix.build == 'linux'
+        run: |
+          mv ./target/${{ env.LINUX_TARGET }}/release/${{ env.RELEASE_BIN }} ./dist/${{ env.RELEASE_BIN }}
+          mv ${{ env.RELEASE_ADDS }} ./dist
+          7z a -ttar -so -an ./dist | 7z a -si ./${{ env.RELEASE_DIR }}/${{ env.RELEASE_BIN }}-${{ steps.get_version.outputs.VERSION }}-${{ env.LINUX_TARGET }}.tar.gz
+
+      - name: Create tarball (Windows)
+        if: matrix.build == 'windows'
+        shell: bash
+        run: |
+          mv ./target/release/${{ env.RELEASE_BIN }}.exe ./dist/${{ env.RELEASE_BIN }}.exe
+          mv ${{ env.RELEASE_ADDS }} ./dist
+          7z a -ttar -so -an ./dist | 7z a -si ./${{ env.RELEASE_DIR }}/${{ env.RELEASE_BIN }}-${{ steps.get_version.outputs.VERSION }}-${{ env.WINDOWS_TARGET }}.tar.gz
+
+      - name: Create tarball (MacOS)
+        if: matrix.build == 'macos'
+        run: |
+          mv ./target/release/${{ env.RELEASE_BIN }} ./dist/${{ env.RELEASE_BIN }}
+          mv ${{ env.RELEASE_ADDS }} ./dist
+          7z a -ttar -so -an ./dist | 7z a -si ./${{ env.RELEASE_DIR }}/${{ env.RELEASE_BIN }}-${{ steps.get_version.outputs.VERSION }}-${{ env.MACOS_TARGET }}.tar.gz
+
+      - name: Upload Zip
+        uses: actions/upload-artifact@v1
+        with:
+          name: ${{ matrix.build }}
+          path: ./${{ env.RELEASE_DIR }}
+
+  release:
+    name: GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Query version number
+        id: get_version
+        shell: bash
+        run: |
+          echo "using version tag ${GITHUB_REF:10}"
+          echo ::set-output name=version::"${GITHUB_REF:10}"
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.get_version.outputs.VERSION }}
+          release_name: ${{ steps.get_version.outputs.VERSION }}
+
+      - name: Download Linux tarball
+        uses: actions/download-artifact@v1
+        with:
+          name: linux
+
+      - name: Download MacOS tarball
+        uses: actions/download-artifact@v1
+        with:
+          name: windows
+
+      - name: Download MacOS tarball
+        uses: actions/download-artifact@v1
+        with:
+          name: macos
+
+      - name: Release Linux tarball
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./linux/wasm-pack-${{ steps.get_version.outputs.VERSION }}-${{ env.LINUX_TARGET }}.tar.gz
+          asset_content_type: application/gzip
+          asset_name: wasm-pack-${{ steps.get_version.outputs.VERSION }}-${{ env.LINUX_TARGET }}.tar.gz
+
+      - name: Release Windows tarball
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./windows/wasm-pack-${{ steps.get_version.outputs.VERSION }}-${{ env.WINDOWS_TARGET }}.tar.gz
+          asset_content_type: application/gzip
+          asset_name: wasm-pack-${{ steps.get_version.outputs.VERSION }}-${{ env.WINDOWS_TARGET }}.tar.gz
+
+      - name: Release MacOS tarball
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./macos/wasm-pack-${{ steps.get_version.outputs.VERSION }}-${{ env.MACOS_TARGET }}.tar.gz
+          asset_content_type: application/gzip
+          asset_name: wasm-pack-${{ steps.get_version.outputs.VERSION }}-${{ env.MACOS_TARGET }}.tar.gz

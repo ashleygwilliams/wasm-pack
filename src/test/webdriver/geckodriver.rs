@@ -186,10 +186,11 @@ fn get_version_from_json(json: impl AsRef<str>) -> Result<String, failure::Error
         })
 }
 
-fn assemble_geckodriver_url(tag: &str, target: &str, ext: &str) -> String {
+fn assemble_geckodriver_url(_tag: &str, target: &str, ext: &str) -> String {
     format!(
         "https://github.com/mozilla/geckodriver/releases/download/{tag}/geckodriver-{tag}-{target}.{ext}",
-        tag=tag,
+        // TODO: Temporary use v0.24.0 instead of latest. Latest is currently not working...
+        tag="v0.24.0",
         target=target,
         ext=ext,
     )

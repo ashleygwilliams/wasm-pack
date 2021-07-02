@@ -17,7 +17,9 @@ pub fn generate(
     let download = install::download_prebuilt_or_cargo_install(
         Tool::CargoGenerate,
         &cache::get_wasm_pack_cache()?,
-        "latest",
+        "^0.5.3", // This is a temporary fix for issue
+                  // [#907](https://github.com/rustwasm/wasm-pack/issues/907).
+                  // `latest` no longer works with cargo.
         install_permitted,
     )?;
     generate::generate(&template, &name, &download)?;

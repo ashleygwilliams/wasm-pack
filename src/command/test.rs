@@ -294,7 +294,7 @@ impl Test {
             bail!(
                 "Ensure that you have \"{}\" as a dependency in your Cargo.toml file:\n\
                  [dev-dependencies]\n\
-                 wasm-bindgen-test = \"0.2\"",
+                 wasm-bindgen-test = \"0.3\"",
                 style("wasm-bindgen-test").bold().dim(),
             )
         }

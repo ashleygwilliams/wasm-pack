@@ -48,7 +48,6 @@ wasm-pack build --out-name index
 # index.d.ts  index.js  index_bg.d.ts  index_bg.wasm  package.json  README.md
 ```
 
-
 ## Profile
 
 The `build` command accepts an optional profile argument: one of `--dev`,
@@ -57,11 +56,11 @@ The `build` command accepts an optional profile argument: one of `--dev`,
 This controls whether debug assertions are enabled, debug info is generated, and
 which (if any) optimizations are enabled.
 
-| Profile       | Debug Assertions | Debug Info | Optimizations | Notes                                 |
-|---------------|------------------|------------|---------------|---------------------------------------|
-| `--dev`       | Yes              | Yes        | No            | Useful for development and debugging. |
+| Profile       | Debug Assertions | Debug Info | Optimizations | Notes                                                       |
+| ------------- | ---------------- | ---------- | ------------- | ----------------------------------------------------------- |
+| `--dev`       | Yes              | Yes        | No            | Useful for development and debugging.                       |
 | `--profiling` | No               | Yes        | Yes           | Useful when profiling and investigating performance issues. |
-| `--release`   | No               | No         | Yes           | Useful for shipping to production.    |
+| `--release`   | No               | No         | Yes           | Useful for shipping to production.                          |
 
 The `--dev` profile will build the output package using cargo's [default
 non-release profile][cargo-profile-sections-documentation]. Building this way is
@@ -85,12 +84,12 @@ using the compiled output][deploy].
 wasm-pack build --target nodejs
 ```
 
-| Option    | Usage | Description                                                                                                     |
-|-----------|------------|-----------------------------------------------------------------------------------------------------|
-| *not specified* or `bundler` | [Bundler][bundlers] | Outputs JS that is suitable for interoperation with a Bundler like Webpack. You'll `import` the JS and the `module` key is specified in `package.json`. `sideEffects: false` is by default. |
-| `nodejs`  | [Node.js][deploy-nodejs] | Outputs JS that uses CommonJS modules, for use with a `require` statement. `main` key in `package.json`. |
-| `web` | [Native in browser][deploy-web] | Outputs JS that can be natively imported as an ES module in a browser, but the WebAssembly must be manually instantiated and loaded. |
-| `no-modules` | [Native in browser][deploy-web] | Same as `web`, except the JS is included on a page and modifies global state, and doesn't support as many `wasm-bindgen` features as `web` |
+| Option                       | Usage                           | Description                                                                                                                                                                                 |
+| ---------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| _not specified_ or `bundler` | [Bundler][bundlers]             | Outputs JS that is suitable for interoperation with a Bundler like Webpack. You'll `import` the JS and the `module` key is specified in `package.json`. `sideEffects: false` is by default. |
+| `nodejs`                     | [Node.js][deploy-nodejs]        | Outputs JS that uses CommonJS modules, for use with a `require` statement. `main` key in `package.json`.                                                                                    |
+| `web`                        | [Native in browser][deploy-web] | Outputs JS that can be natively imported as an ES module in a browser, but the WebAssembly must be manually instantiated and loaded.                                                        |
+| `no-modules`                 | [Native in browser][deploy-web] | Same as `web`, except the JS is included on a page and modifies global state, and doesn't support as many `wasm-bindgen` features as `web`                                                  |
 
 [deploy]: https://rustwasm.github.io/docs/wasm-bindgen/reference/deployment.html
 [bundlers]: https://rustwasm.github.io/docs/wasm-bindgen/reference/deployment.html#bundlers
@@ -116,14 +115,35 @@ the npm documentation [here][npm-scope-documentation].
 ## Mode
 
 The `build` command accepts an optional `--mode` argument.
+
 ```
 wasm-pack build examples/js-hello-world --mode no-install
 ```
 
-| Option        | Description                                                                              |
-|---------------|------------------------------------------------------------------------------------------|
-| `no-install`  | `wasm-pack init` implicitly and create wasm binding  without installing `wasm-bindgen`.  |
-| `normal`      | do all the stuffs of `no-install` with installed `wasm-bindgen`.                         |
+| Option       | Description                                                                            |
+| ------------ | -------------------------------------------------------------------------------------- |
+| `no-install` | `wasm-pack init` implicitly and create wasm binding without installing `wasm-bindgen`. |
+| `normal`     | do all the stuffs of `no-install` with installed `wasm-bindgen`.                       |
+
+## Support for Reference Types
+
+You can enable support for reference types with the optional `--reference-types` argument.
+
+```
+wasm-pack build examples/js-hello-world --reference-types
+```
+
+This feature is hoped to enable more efficient communication between the host (JS) and the wasm module, but not yet all browsers support it.
+
+For more information about reference types, you should read the [wasm-bindgen Guide](https://rustwasm.github.io/docs/wasm-bindgen/reference/reference-types.html#support-for-reference-types).
+
+This argument will automatically disable `wasm-opt`.
+Otherwise compilation would crash with the following error:
+
+```
+[parse exception: Only 1 table definition allowed in MVP (at 0:4234)]
+Fatal: error in parsing input
+```
 
 ## Extra options
 

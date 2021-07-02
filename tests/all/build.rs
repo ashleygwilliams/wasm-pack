@@ -376,3 +376,15 @@ fn build_crates_with_same_names() {
         .assert()
         .success();
 }
+
+#[test]
+fn build_with_reftypes() {
+    let fixture = utils::fixture::js_hello_world();
+    fixture.install_local_wasm_bindgen();
+    fixture
+        .wasm_pack()
+        .arg("build")
+        .arg("--reference-types")
+        .assert()
+        .success();
+}

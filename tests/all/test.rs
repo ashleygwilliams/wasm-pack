@@ -197,7 +197,7 @@ fn complains_about_missing_wasm_bindgen_test_dependency() {
             "Ensure that you have \"wasm-bindgen-test\" as a dependency in your Cargo.toml file",
         ))
         .stderr(predicates::str::contains("[dev-dependencies]"))
-        .stderr(predicates::str::contains("wasm-bindgen-test = \"0.2\""));
+        .stderr(predicates::str::contains("wasm-bindgen-test = \"0.3\""));
 }
 
 #[test]

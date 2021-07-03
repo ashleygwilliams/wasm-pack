@@ -378,14 +378,36 @@ impl Build {
     }
 
     fn step_run_wasm_opt(&mut self) -> Result<(), Error> {
+        const WASM_PACK_ENV_VAR: &'static str = "WASM_PACK_WASM_OPT";
+
+        let force_run_opt = match std::env::var(WASM_PACK_ENV_VAR) {
+            Ok(wasm_opt) => match wasm_opt.as_str() {
+                "true" => true,
+                "false" => {
+                    return Ok(());
+                }
+                _ => {
+                    return Err(format_err!("Incorrect value {} for environment variable {} - either `true` `false` or omitted was expected.", wasm_opt, WASM_PACK_ENV_VAR));
+                }
+            },
+            Err(_) => false,
+        };
+
         let args = match self
             .crate_data
             .configured_profile(self.profile)
             .wasm_opt_args()
         {
             Some(args) => args,
-            None => return Ok(()),
+            None => {
+                if force_run_opt {
+                    Vec::new()
+                } else {
+                    return Ok(());
+                }
+            }
         };
+
         info!("executing wasm-opt with {:?}", args);
         wasm_opt::run(
             &self.cache,

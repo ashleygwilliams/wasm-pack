@@ -141,3 +141,16 @@ wasm-pack build examples/js-hello-world --mode no-install -- --offline
 <sup id="footnote-0">0</sup> If you need to include additional assets in the pkg
 directory and your NPM package, we intend to have a solution for your use case
 soon. [↩](#wasm-pack-build)
+
+## Environment Variables read by `wasm-pack build`
+
+> WARNING! Configuration via environment variables is new in wasm-pack so expect some churn as the right patterns are
+> discovered.
+
+You can override these environment variables to change `wasm-pack` build's behavior.
+
+Environment variables take precedence over `Cargo.toml` configuration.
+
+For example, if `WASM_PACK_WASM_OPT=false` is set as an environment variable, wasm-opt will not run under any circumstance.
+
+- `WASM_PACK_WASM_OPT` -- Enable/disable whether wasm-opt will be used to optimize the .wasm binary. Can be `true` or `false`.

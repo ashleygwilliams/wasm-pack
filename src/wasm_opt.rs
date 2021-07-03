@@ -58,7 +58,7 @@ pub fn find_wasm_opt(
     cache: &Cache,
     install_permitted: bool,
 ) -> Result<install::Status, failure::Error> {
-    let version = "version_78";
+    let version = "version_90";
     Ok(install::download_prebuilt(
         &install::Tool::WasmOpt,
         cache,

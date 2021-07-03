@@ -28,23 +28,4 @@ const getBinary = () => {
   return new Binary(name, url );
 };
 
-const run = () => {
-  const binary = getBinary();
-  binary.run();
-};
-
-const install = () => {
-  const binary = getBinary();
-  binary.install();
-};
-
-const uninstall = () => {
-  const binary = getBinary();
-  binary.uninstall();
-};
-
-module.exports = {
-  install,
-  run,
-  uninstall
-};
+module.exports = getBinary();

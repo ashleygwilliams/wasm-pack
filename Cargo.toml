@@ -41,8 +41,7 @@ chrono = "0.4.6"
 assert_cmd = "0.11"
 lazy_static = "1.1.0"
 predicates = "1.0.0"
-serial_test = "0.2"
-serial_test_derive = "0.2"
+serial_test = "0.3"
 tempfile = "3"
 
 [features]

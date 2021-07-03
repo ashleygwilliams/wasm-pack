@@ -4,10 +4,9 @@
 
 It contains three key parts:
 
-1. [`#[wasm_bindgen] functions`](#a1-wasm_bindgen-functions)
-2. [Crate imports](#a2-crate-imports)
-3. [`wee_alloc` optional dependecy](#a3-wee_alloc-optional-dependecy)
-	- [What is `wee_alloc`?](#what-is-wee_alloc)
+1. [Using `wasm_bindgen`](#1-using-wasm_bindgen)
+2. [`#[wasm_bindgen] functions`](#2-wasm_bindgen-functions)
+3. [`wee_alloc` dependecy](#3-wee_alloc-dependecy)
 
 ---
 
@@ -32,7 +31,7 @@ The asterisk at the end of this `use` indicates that everything inside the modul
 
 For example, `#[wasm_bindgen]` could also be written as `#[wasm_bindgen::prelude::wasm_bindgen]`, although this is not recommended.
 
-## 1. `#[wasm_bindgen]` functions
+## 2. `#[wasm_bindgen]` functions
 
 The `#[wasm_bindgen]` attribute indicates that the function below it will be accessible both in JavaScript and Rust.
 
@@ -59,13 +58,30 @@ pub fn greet() {
 If we were to write the `greet` function without the `#[wasm_bindgen]` attribute, then `greet` would not be easily accessible within JavaScript. Furthermore, we wouldn't be able to natively convert certain types such as `&str` between JavaScript and Rust. So, both the `#[wasm_bindgen]` attribute and the prior import of `alert` allow `greet` to be called from JavaScript.
 
 This is all you need to know to interface with JavaScript, at least to start! You can learn a bunch more by reading the
-[`wasm-bindgen` documentation]!
+[`wasm-bindgen` documentation]! We also will discuss this just a few [sections ahead](https://rustwasm.github.io/docs/wasm-pack/tutorials/npm-browser-packages/template-deep-dive/wee_alloc.html).
 
 [`wasm-bindgen` documentation]: https://rustwasm.github.io/docs/wasm-bindgen/
 
-If you are curious about the rest, read on.
+## 3. `wee_alloc` dependecy
 
-## 2. Crate Organization
+
+```rust
+	// When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
+	// allocator.
+	#[cfg(feature = "wee_alloc")]
+	#[global_allocator]
+	static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
+```
+
+At compile time this will enable the `wee_alloc` feature and a global allocator (according to
+[`wee_alloc`'s docs][wee-alloc-docs]).
+
+[wee-alloc-docs]: https://docs.rs/wee_alloc/0.4.3/wee_alloc/
+
+As we saw earlier, the `default` vector in `[features]` only contains `"console_error_panic_hook"` and not `"wee_alloc"`. So, in this case, this 
+block will be replaced by no code at all, and hence the default memory allocator will be used instead of `wee_alloc`.
+
+## Crate Organization
 
 ```rust
 mod utils;
@@ -78,23 +94,4 @@ mod utils {
 }
 ```
 
-Either way, the contents of `utils.rs` define a single public function `set_panic_hook`. Because we are placing it inside the `utils` module, we will be able to call the function directly by writing `utils::set_panic_hook()`. We will discuss how and why to use this function in `src/utils.rs`.
-
-
-```rust
-    // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
-    // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global	// allocator.
-    // allocator.	#[cfg(feature = "wee_alloc")]
-    if #[cfg(feature = "wee_alloc")] {	#[global_allocator]
-        #[global_allocator]	static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
-```
-
-At compile time this will test if the `wee_alloc` feature is enabled for this
-compilation. If it's enabled we'll configure a global allocator (according to
-[`wee_alloc`'s docs][wee-alloc-docs]), otherwise it'll compile to nothing.
-
-[wee-alloc-docs]: https://docs.rs/wee_alloc/0.4.3/wee_alloc/
-
-As we saw earlier, the `default` vector in `[features]` only contains `"console_error_panic_hook"` and not `"wee_alloc"`. So, in this case, this 
-block will be replaced by no code at all, and hence the default memory allocator will be used instead of `wee_alloc`.
-
+Either way, the contents of `utils.rs` define a single public function `set_panic_hook`. Because we are placing it inside the `utils` module, we will be able to call the function directly by writing `utils::set_panic_hook()`. Next we will discuss how and why to use this function in `src/utils.rs`.

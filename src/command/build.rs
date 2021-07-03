@@ -54,6 +54,8 @@ pub enum Target {
     /// in a browser but pollutes the global namespace and must be manually
     /// instantiated.
     NoModules,
+    /// Correspond to --target deno here the output is Modules available for deno
+    Deno,
 }
 
 impl Default for Target {
@@ -69,6 +71,7 @@ impl fmt::Display for Target {
             Target::Web => "web",
             Target::Nodejs => "nodejs",
             Target::NoModules => "no-modules",
+            Target::Deno => "deno",
         };
         write!(f, "{}", s)
     }
@@ -82,6 +85,7 @@ impl FromStr for Target {
             "web" => Ok(Target::Web),
             "nodejs" => Ok(Target::Nodejs),
             "no-modules" => Ok(Target::NoModules),
+            "deno" => Ok(Target::Deno),
             _ => bail!("Unknown target: {}", s),
         }
     }
@@ -313,7 +317,7 @@ impl Build {
 
     fn step_create_dir(&mut self) -> Result<(), Error> {
         info!("Creating a pkg directory...");
-        create_pkg_dir(&self.out_dir)?;
+        create_pkg_dir(&self.out_dir, &self.target)?;
         info!("Created a pkg directory at {:#?}.", &self.crate_path);
         Ok(())
     }

@@ -6,7 +6,7 @@ using [`cargo-generate`] under the hood.
 It takes 3 parameters, name, template, and mode:
 
 ```
-wasm-pack new <name> --template <template> --mode <normal|noinstall|force>
+wasm-pack new <name> --template <template> --mode <normal|no-install|force>
 ```
 
 The default template is [`rustwasm/wasm-pack-template`](https://github.com/rustwasm/wasm-pack-template).
@@ -37,13 +37,13 @@ template.
 The `wasm-pack new` command can be given an optional mode argument, e.g.:
 
 ```
-wasm-pack new myproject --mode noinstall
+wasm-pack new myproject --mode no-install
 ```
 
-The mode passed can be either "normal", "noinstall", or "force". "normal" is passed by
+The mode passed can be either "normal", "no-install", or "force". "normal" is passed by
 default.
 
-`noinstall` means that wasm-pack should not attempt to install any underlying tools.
+`no-install` means that wasm-pack should not attempt to install any underlying tools.
 If a necessary tool cannot be found, the command will error.
 
 `force` means that wasm-pack should not check the local Rust version. If a local Rust

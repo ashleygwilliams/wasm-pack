@@ -28,6 +28,7 @@ pub struct Build {
     pub scope: Option<String>,
     pub disable_dts: bool,
     pub target: Target,
+    pub no_pack: bool,
     pub profile: BuildProfile,
     pub mode: InstallMode,
     pub out_dir: PathBuf,
@@ -148,6 +149,10 @@ pub struct BuildOptions {
     /// Sets the output file names. Defaults to package name.
     pub out_name: Option<String>,
 
+    #[structopt(long = "no-pack")]
+    /// Option to not generate a package.json
+    pub no_pack: bool,
+
     #[structopt(last = true)]
     /// List of extra options to pass to `cargo build`
     pub extra_options: Vec<String>,
@@ -163,6 +168,7 @@ impl Default for BuildOptions {
             target: Target::default(),
             debug: false,
             dev: false,
+            no_pack: false,
             release: false,
             profiling: false,
             out_dir: String::new(),
@@ -197,6 +203,7 @@ impl Build {
             scope: build_opts.scope,
             disable_dts: build_opts.disable_dts,
             target: build_opts.target,
+            no_pack: build_opts.no_pack,
             profile,
             mode: build_opts.mode,
             out_dir,
@@ -214,7 +221,7 @@ impl Build {
 
     /// Execute this `Build` command.
     pub fn run(&mut self) -> Result<(), Error> {
-        let process_steps = Build::get_process_steps(self.mode);
+        let process_steps = Build::get_process_steps(self.mode, self.no_pack);
 
         let started = Instant::now();
 
@@ -239,7 +246,7 @@ impl Build {
         Ok(())
     }
 
-    fn get_process_steps(mode: InstallMode) -> Vec<(&'static str, BuildStep)> {
+    fn get_process_steps(mode: InstallMode, no_pack: bool) -> Vec<(&'static str, BuildStep)> {
         macro_rules! steps {
             ($($name:ident),+) => {
                 {
@@ -261,16 +268,23 @@ impl Build {
                 ]);
             }
         }
+
         steps.extend(steps![
             step_build_wasm,
             step_create_dir,
-            step_copy_readme,
-            step_copy_license,
             step_install_wasm_bindgen,
             step_run_wasm_bindgen,
             step_run_wasm_opt,
-            step_create_json,
         ]);
+
+        if !no_pack {
+            steps.extend(steps![
+                step_create_json,
+                step_copy_readme,
+                step_copy_license,
+            ]);
+        }
+
         steps
     }
 

@@ -9,7 +9,7 @@ much Rust knowledge to complete this tutorial.
 Be sure to have done the following before starting:
 
 1. [Install `wasm-pack`](https://rustwasm.github.io/wasm-pack/installer/)
-1. Read and install the [Prerequisites](../../../prerequisites/index.html).
+1. Read and install the [Prerequisites](../../prerequisites/index.html).
 
 ⚠️ We strongly recommend that you install [Node.js] using a version manager. You can learn more [here](https://npmjs.com/get-npm).
 

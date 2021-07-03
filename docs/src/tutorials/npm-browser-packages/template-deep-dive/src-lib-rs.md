@@ -17,7 +17,7 @@ We'll start with the most important part of `lib.rs` -- the two `#[wasm_bindgen]
 
 To expose functionality from the `wasm-bindgen` crate more conveniently we can use the `use` keyword.
 `use` allows us to conveniently refer to parts of a crate or module. You can learn more about how Rust
-lets you write modular code in [this chapter of the book](https://doc.rust-lang.org/book/ch07-02-modules-and-use-to-control-scope-and-privacy.html).
+lets you write modular code in [this chapter of the book](https://doc.rust-lang.org/book/ch07-02-defining-modules-to-control-scope-and-privacy.html).
 
 ```rust
 use wasm_bindgen::prelude::*;

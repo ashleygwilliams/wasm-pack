@@ -179,7 +179,7 @@ impl Build {
     pub fn try_from_opts(build_opts: BuildOptions) -> Result<Self, Error> {
         let crate_path = get_crate_path(build_opts.path)?;
         let crate_data = manifest::CrateData::new(&crate_path, build_opts.out_name.clone())?;
-        let out_dir = crate_path.join(PathBuf::from(build_opts.out_dir));
+        let out_dir = PathBuf::from(build_opts.out_dir);
 
         let dev = build_opts.dev || build_opts.debug;
         let profile = match (dev, build_opts.release, build_opts.profiling) {

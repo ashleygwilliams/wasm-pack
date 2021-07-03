@@ -19,7 +19,7 @@
 use std::env;
 use std::fs;
 use std::io;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process;
 
 use atty;
@@ -48,21 +48,38 @@ pub fn install() -> ! {
 }
 
 fn do_install() -> Result<(), failure::Error> {
-    // Find `rustup.exe` in PATH, we'll be using its installation directory as
-    // our installation directory.
-    let rustup = match which::which("rustup") {
-        Ok(path) => path,
+    // First check to see if the environmental variable $CARGO_HOME is set and
+    // install wasm-pack into this directory.  Otherwise find `rustup.exe` in PATH,
+    // and use its installation directory as our installation directory.
+    let mut installation_dir: PathBuf = PathBuf::new();
+    let cargo_home: Result<String, env::VarError> = env::var("CARGO_HOME");
+    match cargo_home {
+        Ok(path) => {
+            installation_dir.push(path);
+            installation_dir.push("bin");
+        }
         Err(_) => {
-            bail!(
-                "failed to find an installation of `rustup` in `PATH`, \
-                 is rustup already installed?"
-            );
+            println!("$CARGO_HOME not set, default to rustup location for install");
+            let rustup = match which::which("rustup") {
+                Ok(path) => path,
+                Err(_) => {
+                    bail!(
+                        "failed to find an installation of `rustup` in `PATH`, \
+                         is rustup already installed?"
+                    );
+                }
+            };
+            let rustup_dir = match rustup.parent() {
+                Some(parent) => parent,
+                None => bail!(
+                    "can't install when `rustup` is at the root of, \
+                     the filesystem"
+                ),
+            };
+            installation_dir.push(rustup_dir)
         }
     };
-    let installation_dir = match rustup.parent() {
-        Some(parent) => parent,
-        None => bail!("can't install when `rustup` is at the root of the filesystem"),
-    };
+
     let destination = installation_dir
         .join("wasm-pack")
         .with_extension(env::consts::EXE_EXTENSION);
@@ -73,15 +90,22 @@ fn do_install() -> Result<(), failure::Error> {
 
     // Our relatively simple install step!
     let me = env::current_exe()?;
-    fs::copy(&me, &destination)
-        .with_context(|_| format!("failed to copy executable to `{}`", destination.display()))?;
-    println!(
-        "info: successfully installed wasm-pack to `{}`",
-        destination.display()
-    );
+    match fs::copy(&me, &destination) {
+        Ok(_val) => {
+            println!(
+                "info: successfully installed wasm-pack to `{}`",
+                destination.display()
+            );
+        }
+        Err(_) => {
+            bail!(
+                "Unable to write to {}.  Set $CARGO_HOME to install elsewhere.",
+                destination.display()
+            );
+        }
+    };
 
     // ... and that's it!
-
     Ok(())
 }
 

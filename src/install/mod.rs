@@ -55,22 +55,6 @@ pub fn download_prebuilt_or_cargo_install(
     version: &str,
     install_permitted: bool,
 ) -> Result<Status, failure::Error> {
-    // If the tool is installed globally and it has the right version, use
-    // that. Assume that other tools are installed next to it.
-    //
-    // This situation can arise if the tool is already installed via
-    // `cargo install`, for example.
-    if let Ok(path) = which(tool.to_string()) {
-        debug!("found global {} binary at: {}", tool, path.display());
-        if check_version(&tool, &path, version)? {
-            let download = Download::at(path.parent().unwrap());
-            return Ok(Status::Found(download));
-        }
-    }
-
-    let msg = format!("{}Installing {}...", emoji::DOWN_ARROW, tool);
-    PBAR.info(&msg);
-
     let dl = download_prebuilt(&tool, &cache, version, install_permitted);
     match dl {
         Ok(dl) => return Ok(dl),
@@ -125,6 +109,27 @@ pub fn download_prebuilt(
     version: &str,
     install_permitted: bool,
 ) -> Result<Status, failure::Error> {
+    // If the tool is installed globally and it has the right version, use
+    // that. Assume that other tools are installed next to it.
+    //
+    // If found tool with an unexpected version, but install is not permitted,
+    // then use the tool anyway - worst case it won't support the expected
+    // parameters and print an error just like we would, but in most cases
+    // it should still work (e.g. a backward-compatible upgrade).
+    //
+    // This situation can arise if the tool is already installed via
+    // `cargo install`, for example.
+    if let Ok(path) = which(tool.to_string()) {
+        debug!("found global {} binary at: {}", tool, path.display());
+        if !install_permitted || check_version(&tool, &path, version)? {
+            let download = Download::at(path.parent().unwrap());
+            return Ok(Status::Found(download));
+        }
+    }
+
+    let msg = format!("{}Installing {}...", emoji::DOWN_ARROW, tool);
+    PBAR.info(&msg);
+
     let url = match prebuilt_url(tool, version) {
         Ok(url) => url,
         Err(e) => bail!(

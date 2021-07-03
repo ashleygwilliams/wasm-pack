@@ -17,6 +17,8 @@ pub fn wasm_bindgen_build(
     out_dir: &Path,
     out_name: &Option<String>,
     disable_dts: bool,
+    weak_refs: bool,
+    reference_types: bool,
     target: Target,
     profile: BuildProfile,
 ) -> Result<(), failure::Error> {
@@ -47,6 +49,14 @@ pub fn wasm_bindgen_build(
         .arg("--out-dir")
         .arg(out_dir)
         .arg(dts_arg);
+
+    if weak_refs {
+        cmd.arg("--weak-refs");
+    }
+
+    if reference_types {
+        cmd.arg("--reference-types");
+    }
 
     let target_arg = build_target_arg(target, &bindgen_path)?;
     if supports_dash_dash_target(bindgen_path.to_path_buf())? {

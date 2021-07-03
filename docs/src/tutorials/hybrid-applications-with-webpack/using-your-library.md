@@ -64,6 +64,14 @@ import("../crate/pkg").then(module => {
 });
 ```
 
+## Install `npm` Dependencies
+
+Before your first run, don't forget to install npm dependencies in your project's root directories:
+
+```bash
+npm install
+```
+
 ## Run The Project
 
 To generate our Rust-compiled to wasm code, in the root directory we run:

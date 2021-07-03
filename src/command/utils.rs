@@ -3,6 +3,8 @@
 
 use failure;
 use std::fs;
+use std::fs::OpenOptions;
+use std::io::{ErrorKind, Write};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 use walkdir::WalkDir;
@@ -38,8 +40,20 @@ fn find_manifest_from_cwd() -> Result<PathBuf, failure::Error> {
 /// Construct our `pkg` directory in the crate.
 pub fn create_pkg_dir(out_dir: &Path) -> Result<(), failure::Error> {
     fs::create_dir_all(&out_dir)?;
-    fs::write(out_dir.join(".gitignore"), "*")?;
-    Ok(())
+
+    let file = OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(out_dir.join(".gitignore"))
+        .map(|mut f| f.write_all(b"*"));
+
+    match file {
+        Ok(_) => Ok(()),
+        Err(e) => match e.kind() {
+            ErrorKind::AlreadyExists => Ok(()),
+            _ => Err(e.into()),
+        },
+    }
 }
 
 /// Locates the pkg directory from a specific path

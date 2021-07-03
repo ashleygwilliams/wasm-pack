@@ -125,6 +125,23 @@ wasm-pack build examples/js-hello-world --mode no-install
 | `no-install`  | `wasm-pack init` implicitly and create wasm binding  without installing `wasm-bindgen`.  |
 | `normal`      | do all the stuffs of `no-install` with installed `wasm-bindgen`.                         |
 
+## Multiple build targets per package
+
+The `build` command accepts an optional `--is-child` argument.
+```
+wasm-pack build examples/js-hello-world --is-child --out-name child
+```
+
+This command will extend a previously generated package, which makes it possible to have multiple build targets per package.
+For example it would be feasible to have an optimized build for web and Node.
+
+Following is an example which will use the wee_alloc feature for web, because size is more crucial whereas Node should be optimized for speed.
+
+```
+wasm-pack build examples/js-hello-world --out-dir pkg -- --features "wee_alloc"
+wasm-pack build examples/js-hello-world --out-dir pkg --out-name js-hello-node --is-child
+```
+
 ## Extra options
 
 The `build` command can pass extra options straight to `cargo build` even if they are not

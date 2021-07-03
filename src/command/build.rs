@@ -32,6 +32,7 @@ pub struct Build {
     pub mode: InstallMode,
     pub out_dir: PathBuf,
     pub out_name: Option<String>,
+    pub is_child: bool,
     pub bindgen: Option<install::Status>,
     pub cache: Cache,
     pub extra_options: Vec<String>,
@@ -148,6 +149,10 @@ pub struct BuildOptions {
     /// Sets the output file names. Defaults to package name.
     pub out_name: Option<String>,
 
+    #[structopt(long = "is-child")]
+    /// Won't generate package metadata. Instead adds output to existing package given by `out-dir`.
+    pub is_child: bool,
+
     #[structopt(last = true)]
     /// List of extra options to pass to `cargo build`
     pub extra_options: Vec<String>,
@@ -167,6 +172,7 @@ impl Default for BuildOptions {
             profiling: false,
             out_dir: String::new(),
             out_name: None,
+            is_child: false,
             extra_options: Vec::new(),
         }
     }
@@ -201,6 +207,7 @@ impl Build {
             mode: build_opts.mode,
             out_dir,
             out_name: build_opts.out_name,
+            is_child: build_opts.is_child,
             bindgen: None,
             cache: cache::get_wasm_pack_cache()?,
             extra_options: build_opts.extra_options,
@@ -324,6 +331,7 @@ impl Build {
             &self.scope,
             self.disable_dts,
             self.target,
+            self.is_child,
         )?;
         info!(
             "Wrote a package.json at {:#?}.",
@@ -333,6 +341,9 @@ impl Build {
     }
 
     fn step_copy_readme(&mut self) -> Result<(), Error> {
+        if self.is_child {
+            return Ok(());
+        }
         info!("Copying readme from crate...");
         readme::copy_from_crate(&self.crate_path, &self.out_dir)?;
         info!("Copied readme from crate to {:#?}.", &self.out_dir);
@@ -340,6 +351,9 @@ impl Build {
     }
 
     fn step_copy_license(&mut self) -> Result<(), failure::Error> {
+        if self.is_child {
+            return Ok(());
+        }
         info!("Copying license from crate...");
         license::copy_from_crate(&self.crate_data, &self.crate_path, &self.out_dir)?;
         info!("Copied license from crate to {:#?}.", &self.out_dir);

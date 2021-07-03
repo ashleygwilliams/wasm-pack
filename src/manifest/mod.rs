@@ -573,13 +573,43 @@ impl CrateData {
         scope: &Option<String>,
         disable_dts: bool,
         target: Target,
+        is_child: bool,
     ) -> Result<(), Error> {
         let pkg_file_path = out_dir.join("package.json");
-        let npm_data = match target {
-            Target::Nodejs => self.to_commonjs(scope, disable_dts, out_dir),
-            Target::NoModules => self.to_nomodules(scope, disable_dts, out_dir),
-            Target::Bundler => self.to_esmodules(scope, disable_dts, out_dir),
-            Target::Web => self.to_web(scope, disable_dts, out_dir),
+        let npm_data = if is_child {
+            let npm_json = match fs::read_to_string(&pkg_file_path) {
+                Ok(file) => file,
+                Err(_) => bail!(
+                    "--is-child was provided, but given --out-dir path does not contain a package.json. \
+                     Please make sure, that you compile the parent directory to the same --out-dir"),
+            };
+            let mut npm_data: NpmPackage = serde_json::from_str(&npm_json)?;
+            let name_prefix = self.name_prefix();
+
+            let wasm_file = format!("{}_bg.wasm", name_prefix);
+            npm_data.add_file(wasm_file);
+
+            let js_file = format!("{}.js", name_prefix);
+            npm_data.add_file(js_file);
+
+            if let Target::Nodejs = target {
+                let js_bg_file = format!("{}_bg.js", name_prefix);
+                npm_data.add_file(js_bg_file);
+            }
+
+            if !disable_dts {
+                let dts_file = format!("{}.d.ts", name_prefix);
+                npm_data.add_file(dts_file);
+            }
+
+            npm_data
+        } else {
+            match target {
+                Target::Nodejs => self.to_commonjs(scope, disable_dts, out_dir),
+                Target::NoModules => self.to_nomodules(scope, disable_dts, out_dir),
+                Target::Bundler => self.to_esmodules(scope, disable_dts, out_dir),
+                Target::Web => self.to_web(scope, disable_dts, out_dir),
+            }
         };
 
         let npm_json = serde_json::to_string_pretty(&npm_data)?;

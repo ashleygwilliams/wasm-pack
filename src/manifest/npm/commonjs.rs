@@ -1,6 +1,6 @@
 use manifest::npm::repository::Repository;
 
-#[derive(Serialize)]
+#[derive(Deserialize, Serialize)]
 pub struct CommonJSPackage {
     pub name: String,
     #[serde(skip_serializing_if = "Vec::is_empty")]

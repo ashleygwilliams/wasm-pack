@@ -12,6 +12,7 @@ use std::process::Command;
 /// Run the `wasm-bindgen` CLI to generate bindings for the current crate's
 /// `.wasm`.
 pub fn wasm_bindgen_build(
+    target_dir: &Path,
     data: &CrateData,
     install_status: &install::Status,
     out_dir: &Path,
@@ -27,8 +28,7 @@ pub fn wasm_bindgen_build(
 
     let out_dir = out_dir.to_str().unwrap();
 
-    let wasm_path = data
-        .target_directory()
+    let wasm_path = target_dir
         .join("wasm32-unknown-unknown")
         .join(release_or_debug)
         .join(data.crate_name())

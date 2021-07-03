@@ -364,7 +364,19 @@ impl Build {
 
     fn step_run_wasm_bindgen(&mut self) -> Result<(), Error> {
         info!("Building the wasm bindings...");
+        let target_dir = self
+            .extra_options
+            .iter()
+            .position(|x| *x == "--target-dir")
+            .and_then(|pos| self.extra_options.iter().nth(pos + 1));
+        let target_dir = if let Some(d) = target_dir {
+            self.crate_data.workspace_root().join(d)
+        } else {
+            self.crate_data.target_directory().to_path_buf()
+        };
+        log::debug!("Use target directory {}", target_dir.display());
         bindgen::wasm_bindgen_build(
+            &target_dir,
             &self.crate_data,
             &self.bindgen.as_ref().unwrap(),
             &self.out_dir,

@@ -3,7 +3,7 @@
 use crate::child;
 use crate::install::{self, Tool};
 use crate::PBAR;
-use binary_install::Cache;
+use binary_install::{Cache, Download};
 use std::path::Path;
 use std::process::Command;
 
@@ -58,6 +58,16 @@ pub fn find_wasm_opt(
     cache: &Cache,
     install_permitted: bool,
 ) -> Result<install::Status, failure::Error> {
+    // First attempt to look up in PATH. If found assume it works.
+    if let Ok(path) = which::which("wasm-opt") {
+        PBAR.info(&format!("found wasm-opt at {:?}", path));
+
+        match path.as_path().parent() {
+            Some(path) => return Ok(install::Status::Found(Download::at(path))),
+            None => {}
+        }
+    }
+
     let version = "version_78";
     Ok(install::download_prebuilt(
         &install::Tool::WasmOpt,

@@ -91,8 +91,10 @@ jobs:
         if: matrix.build == 'windows'
         shell: bash
         run: |
-          mv ./target/release/${{ env.RELEASE_BIN }}.exe ./dist/${{ env.RELEASE_BIN }}.exe
+          cp ./target/release/${{ env.RELEASE_BIN }}.exe ./dist/${{ env.RELEASE_BIN }}.exe
+          cp ./target/release/${{ env.RELEASE_BIN }}.exe wasm-pack-init.exe
           mv ${{ env.RELEASE_ADDS }} ./dist
+          mv wasm-pack-init.exe ${{ env.RELEASE_DIR }}
           7z a -ttar -so -an ./dist | 7z a -si ./${{ env.RELEASE_DIR }}/${{ env.RELEASE_BIN }}-${{ steps.get_version.outputs.VERSION }}-${{ env.WINDOWS_TARGET }}.tar.gz
 
       - name: Create tarball (MacOS)
@@ -134,7 +136,7 @@ jobs:
         with:
           name: linux
 
-      - name: Download MacOS tarball
+      - name: Download Windows tarball
         uses: actions/download-artifact@v1
         with:
           name: windows
@@ -163,6 +165,16 @@ jobs:
           asset_path: ./windows/wasm-pack-${{ steps.get_version.outputs.VERSION }}-${{ env.WINDOWS_TARGET }}.tar.gz
           asset_content_type: application/gzip
           asset_name: wasm-pack-${{ steps.get_version.outputs.VERSION }}-${{ env.WINDOWS_TARGET }}.tar.gz
+
+      - name: Release Windows init exe
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./windows/wasm-pack-init.exe
+          asset_content_type: application/vnd.microsoft.portable-executable
+          asset_name: wasm-pack-init.exe
 
       - name: Release MacOS tarball
         uses: actions/upload-release-asset@v1

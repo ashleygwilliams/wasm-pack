@@ -1,5 +1,5 @@
 use assert_cmd::prelude::*;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::path::PathBuf;
 use utils::{self, fixture};
@@ -312,6 +312,54 @@ fn it_creates_a_package_json_with_correct_keys_when_types_are_skipped() {
     .map(|&s| String::from(s))
     .collect();
     assert_eq!(actual_files, expected_files);
+}
+
+#[test]
+fn it_creates_a_package_json_with_npm_dependencies_provided_by_wasm_bindgen() {
+    let fixture = fixture::js_hello_world();
+    let out_dir = fixture.path.join("pkg");
+    let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
+    wasm_pack::command::utils::create_pkg_dir(&out_dir).unwrap();
+    // Write a `package.json` in the out_dir, as wasm-bindgen does:
+    utils::manifest::create_wbg_package_json(
+        &out_dir,
+        r#"
+        { "foo": "^1.2.3" }
+    "#,
+    )
+    .unwrap();
+    assert!(crate_data
+        .write_package_json(&out_dir, &None, true, Target::Bundler)
+        .is_ok());
+    let package_json_path = &out_dir.join("package.json");
+    fs::metadata(package_json_path).unwrap();
+    utils::manifest::read_package_json(&fixture.path, &out_dir).unwrap();
+    let pkg = utils::manifest::read_package_json(&fixture.path, &out_dir).unwrap();
+    assert_eq!(pkg.name, "js-hello-world");
+    assert_eq!(pkg.repository.ty, "git");
+    assert_eq!(
+        pkg.repository.url,
+        "https://github.com/rustwasm/wasm-pack.git"
+    );
+    assert_eq!(pkg.module, "js_hello_world.js");
+
+    let actual_files: HashSet<String> = pkg.files.into_iter().collect();
+    let expected_files: HashSet<String> = [
+        "js_hello_world_bg.wasm",
+        "js_hello_world_bg.js",
+        "js_hello_world.js",
+    ]
+    .iter()
+    .map(|&s| String::from(s))
+    .collect();
+    assert_eq!(actual_files, expected_files);
+
+    let dependencies: Option<HashMap<String, String>> = pkg.dependencies;
+    assert!(dependencies.is_some());
+    let mut expected_dependencies: HashMap<String, String> = HashMap::new();
+    expected_dependencies.insert("foo".to_owned(), "^1.2.3".to_owned());
+
+    assert_eq!(dependencies.unwrap(), expected_dependencies);
 }
 
 #[test]

@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use manifest::npm::repository::Repository;
 
 #[derive(Serialize)]
@@ -21,4 +23,6 @@ pub struct CommonJSPackage {
     pub types: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub keywords: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub dependencies: Option<HashMap<String, String>>,
 }

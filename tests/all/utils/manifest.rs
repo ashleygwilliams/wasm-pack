@@ -1,6 +1,6 @@
-use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
+use std::{collections::HashMap, fs::File};
 
 use failure::Error;
 use serde_json;
@@ -25,6 +25,7 @@ pub struct NpmPackage {
     pub side_effects: bool,
     pub homepage: Option<String>,
     pub keywords: Option<Vec<String>>,
+    pub dependencies: Option<HashMap<String, String>>,
 }
 
 fn default_none() -> String {
@@ -49,4 +50,9 @@ pub fn read_package_json(path: &Path, out_dir: &Path) -> Result<NpmPackage, Erro
     pkg_file.read_to_string(&mut pkg_contents)?;
 
     Ok(serde_json::from_str(&pkg_contents)?)
+}
+
+pub fn create_wbg_package_json(out_dir: &Path, contents: &str) -> Result<(), Error> {
+    let manifest_path = out_dir.join("package.json");
+    Ok(std::fs::write(manifest_path, contents)?)
 }
